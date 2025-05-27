@@ -5,6 +5,7 @@ export default function HomeScreen(){
     const URL = process.env.EXPO_PUBLIC_URL
     const [showTextInputBox, setShowTextInputBox] = useState(false);
     const [vocabList, setVocabList] = useState({loading: 'loading'}); 
+    let text = null;
     useState(() => {
                 
                 fetch(URL).then(
@@ -34,12 +35,44 @@ export default function HomeScreen(){
                     }>
                     
                         {showTextInputBox &&
-                        <TextInput placeholder='Add Vocab: meaning' style={{flex: 1, marginHorizontal:10, textAlign:'center', borderWidth:1, borderRadius:10}}/>
+                        <TextInput 
+                            placeholder='Add Vocab: meaning' 
+                            placeholderTextColor={'gray'}
+                            onChangeText={(inputText) => {
+                                text = inputText
+                                console.log(text);
+                            }}
+                            style={{
+                                flex: 1,
+                                marginHorizontal:10,
+                                textAlign:'center',
+                                borderWidth:1,
+                                borderRadius:10
+                            }}/>
                         }
 
 
                         <TouchableOpacity 
-                            onPress={() => setShowTextInputBox(!showTextInputBox)}
+                            onPress={() => {
+                                setShowTextInputBox(!showTextInputBox)
+                                if(text !== null && text !== undefined && text !== ''){
+                                    let [vocab, meaning] = text.split(':');
+                                    let newVocab = {[vocab]: meaning};
+                                    if(vocab !== undefined && meaning !== undefined){
+                                        
+                                        if(vocabList[vocab] === undefined){
+                                            setVocabList({...vocabList, [vocab]: meaning});
+                                            fetch(URL, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(newVocab)})
+                                            text = null;
+                                        }else{
+                                            alert('Vocab already exists');
+                                        }
+                                    }
+                                    else{
+                                        alert('Please enter a valid \"vocab : meaning\"');
+                                    }
+                                }
+                            }}
                             style={{
                                 backgroundColor: 'blue',
                                 flexBasis:40,
@@ -53,7 +86,7 @@ export default function HomeScreen(){
                         
                         </TouchableOpacity>
                 </View>
-
+                {/* List of Vocab */}
                 <FlatList
                     style={{
                         marginTop: 60,

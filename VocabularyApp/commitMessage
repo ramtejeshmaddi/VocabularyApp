@@ -1,8 +1,7 @@
 Tasks Finished:
-    1. Added vocab add textInput and button
-    2. Added code to fetch and display data
+    1.  Finish the feature to add new vocab 
 
 Todo:
-    1. Finish the feature to add new vocab 
+    1. Ping database every 5 seconds
     2. add feature to edit vocab
     3. add feature to remove vocab
