@@ -1,11 +1,20 @@
 import { View, Text, TextInput, Touchable, TouchableOpacity, FlatList } from 'react-native';
-import React from 'react';
+import React, { useRef } from 'react';
 import { useState } from 'react';
+import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring, runOnJS} from 'react-native-reanimated';
+
+
+
 export default function HomeScreen(){
     const URL = process.env.EXPO_PUBLIC_URL
+
     const [showTextInputBox, setShowTextInputBox] = useState(false);
+
     const [vocabList, setVocabList] = useState({loading: 'loading'}); 
-    let text = null;
+    const [textContent, setTextContent] = useState(null)
+
     useState(() => {
                 
                 fetch(URL).then(
@@ -21,26 +30,36 @@ export default function HomeScreen(){
 
 
     },[]);
+
+    
+
+
     return (
         <View>
-
-                {/* Parent TextInput and Add button*/}
+                {/*
+                --------------------------------
+                Parent TextInput and Add button
+                --------------------------------
+                */}
                 <View 
                     style={{
                         flexDirection: 'row',
                         padding: 10, 
                         position:'absolute', 
-                        width:'100%',
-                        borderWidth: 1,}
+                        width:'100%',}
                     }>
-                    
+                        {/* 
+                        -----------------------
+                        Textbox
+                        -----------------------
+                        */}
                         {showTextInputBox &&
                         <TextInput 
                             placeholder='Add Vocab: meaning' 
                             placeholderTextColor={'gray'}
+                            value={textContent}
                             onChangeText={(inputText) => {
-                                text = inputText
-                                console.log(text);
+                                setTextContent(inputText)
                             }}
                             style={{
                                 flex: 1,
@@ -51,22 +70,22 @@ export default function HomeScreen(){
                             }}/>
                         }
 
-
+                        {/*
+                        -----------------------
+                            '+'  button
+                        -----------------------
+                        */}
                         <TouchableOpacity 
                             onPress={() => {
                                 setShowTextInputBox(!showTextInputBox)
-                                if(text !== null && text !== undefined && text !== ''){
-                                    let [vocab, meaning] = text.split(':');
+                                if(textContent !== null && textContent !== undefined && textContent !== ''){
+                                    let [vocab, meaning] = (textContent).split(':');
                                     let newVocab = {[vocab]: meaning};
                                     if(vocab !== undefined && meaning !== undefined){
                                         
-                                        if(vocabList[vocab] === undefined){
-                                            setVocabList({...vocabList, [vocab]: meaning});
-                                            fetch(URL, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(newVocab)})
-                                            text = null;
-                                        }else{
-                                            alert('Vocab already exists');
-                                        }
+                                        setVocabList({...vocabList, [vocab]: meaning});
+                                        UpdateVocabInDatabase(newVocab);
+                                        setTextContent(null)
                                     }
                                     else{
                                         alert('Please enter a valid \"vocab : meaning\"');
@@ -86,7 +105,11 @@ export default function HomeScreen(){
                         
                         </TouchableOpacity>
                 </View>
-                {/* List of Vocab */}
+                {/*
+                --------------------------------
+                List of Vocab
+                --------------------------------
+                */}
                 <FlatList
                     style={{
                         marginTop: 60,
@@ -96,7 +119,14 @@ export default function HomeScreen(){
                     data={Object.keys(vocabList)}
                     renderItem = {(key) => {
                             return(
-                               <Vocab item={key.item} vocabList={vocabList}/>
+                               <Vocab 
+                                keyWord={key.item} 
+                                vocabList={vocabList} 
+                                setVocab={setVocabList} 
+                                textContent={textContent}
+                                setTextContent={setTextContent} 
+                                setShowTextInputBox={setShowTextInputBox}
+                                />
                             );          
                     }}
                 />
@@ -104,24 +134,124 @@ export default function HomeScreen(){
     );
 }
 
-function Vocab(key){
+function UpdateVocabInDatabase(newVocab){
+    const URL = process.env.EXPO_PUBLIC_URL
+
+    fetch(URL, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(newVocab)})
+
+}
+
+function DeleteVocabFromDatabase(vocab){
+    const URL = process.env.EXPO_PUBLIC_URL
+
+    fetch(URL, {method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({word:vocab})})
+
+}
+function Vocab({keyWord, vocabList, setVocab, textContent, setTextContent, setShowTextInputBox}){
+    function deleteVocab(){
+        let newList = {...vocabList};
+        delete newList[keyWord];
+        console.log(keyWord);
+        DeleteVocabFromDatabase(keyWord);
+        setVocab(newList);
+    }
+
+    function editVocab(){
+        setTextContent(keyWord + ': ' + vocabList[keyWord]) 
+        setShowTextInputBox(true);
+    }
     const [showMeaning, setShowMeaning] = useState(false); 
+    const [showEditDelete, setShowEditDelete] = useState(false); 
+
+    let editDeleteStyle = {
+                            margin: 10,
+                            padding: 10,
+                            borderColor:'black',
+                            borderWidth:1,
+                            borderRadius:5,
+                            flexBasis:80
+                            
+                        }
+
     return(
-        <TouchableOpacity 
-            style={{
-                marginVertical: 5,
-                borderWidth: 1,
-                borderRadius: 10,
-                backgroundColor: 'lightgray'
-            }}
-            onPress={() => setShowMeaning(!showMeaning)}
-            >
+                <View
+                    style={{
+                        marginVertical: 5,
+                        borderWidth: 1,
+                        borderRadius: 10,
+                    }}
+                >
 
-                <Text style={{margin: 10}}>{key.item}</Text>
 
-                {showMeaning && 
-                <Text style={{paddingLeft:20, marginBottom:20, fontStyle:'italic'}}>{key.vocabList[key.item]}</Text>
-                }
-        </TouchableOpacity>
+                    <View 
+                        style={{
+                            display:'flex',
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            backgroundColor: 'lightgray',
+                            borderTopLeftRadius: 10,
+                            borderTopRightRadius: 10,
+                        }}>
+
+                        <TouchableOpacity 
+                            style={{
+                               
+                            }}
+                            onPress={() => {
+                                setShowMeaning(!showMeaning)
+                                setShowEditDelete(false);
+                            }}
+                            >
+
+                                <Text style={{margin: 10}}>{keyWord}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={() => {
+                                setShowEditDelete(!showEditDelete)
+                                setShowMeaning(false);
+                                }}>
+                            <Text style={{margin:10, marginRight: 20}}>...</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    {showMeaning &&
+                    <Text                 
+                        style={{
+                            padding: 30, 
+                            fontStyle:'italic',
+                            borderWidth: 1,
+                        }}>
+
+
+                            {vocabList[keyWord]}
+
+
+                    </Text>
+                    }
+                    {
+                        showEditDelete &&
+                        <View style={{
+                            display:'flex',
+                            flexDirection: 'row',
+                            justifyContent:'space-evenly',
+                            alignItems:'center',
+                            }}>
+                            <TouchableOpacity 
+                            style={editDeleteStyle}
+                            onPress={editVocab}
+                            >
+                                <Text style={{textAlign:'center'}}>Edit</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity 
+                            style={editDeleteStyle}
+                            onPress={deleteVocab}
+                            
+                            >
+                                <Text style={{textAlign:'center'}}>Delete</Text>
+                            </TouchableOpacity>
+                        </View>
+                    }
+                </View>
     );
 }
