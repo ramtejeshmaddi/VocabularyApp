@@ -45,8 +45,10 @@ export default function HomeScreen(){
                     style={{
                         flexDirection: 'row',
                         padding: 10, 
+                        marginBottom: 10,
                         position:'absolute', 
-                        width:'100%',}
+                        width:'100%',
+                     }   
                     }>
                         {/* 
                         -----------------------
@@ -55,7 +57,7 @@ export default function HomeScreen(){
                         */}
                         {showTextInputBox &&
                         <TextInput 
-                            placeholder='Add Vocab: meaning' 
+                            placeholder='word : meaning' 
                             placeholderTextColor={'gray'}
                             value={textContent}
                             onChangeText={(inputText) => {
@@ -63,7 +65,7 @@ export default function HomeScreen(){
                             }}
                             style={{
                                 flex: 1,
-                                marginHorizontal:10,
+                                marginRight:10,
                                 textAlign:'center',
                                 borderWidth:1,
                                 borderRadius:10
@@ -93,7 +95,7 @@ export default function HomeScreen(){
                                 }
                             }}
                             style={{
-                                backgroundColor: 'blue',
+                                backgroundColor: 'black',
                                 flexBasis:40,
                                 padding: 8,
                                 borderRadius: 5,
@@ -101,7 +103,11 @@ export default function HomeScreen(){
                             }}
                         >
 
-                                <Text style={{textAlign:'center'}}>+</Text>
+                                <Text style={{
+                                    textAlign:'center',
+                                    paddingBottom: 3,
+                                    color:'white',
+                                    }}>+</Text>
                         
                         </TouchableOpacity>
                 </View>
@@ -114,7 +120,6 @@ export default function HomeScreen(){
                     style={{
                         marginTop: 60,
                         marginHorizontal: 10,
-                        borderWidth:1,
                     }} 
                     data={Object.keys(vocabList)}
                     renderItem = {(key) => {
@@ -148,6 +153,21 @@ function DeleteVocabFromDatabase(vocab){
 
 }
 function Vocab({keyWord, vocabList, setVocab, textContent, setTextContent, setShowTextInputBox}){
+    const [showMeaning, setShowMeaning] = useState(false); 
+    const [showEditDelete, setShowEditDelete] = useState(false); 
+    let editDeleteStyle = {
+                            
+                            borderColor:'black',
+                            borderWidth:1,
+                            borderRadius:5,
+                            flexBasis:80,
+                            backgroundColor:'white',
+                            
+                        }
+
+    /*-------------------------------
+        deleteVocab function
+    -------------------------------*/
     function deleteVocab(){
         let newList = {...vocabList};
         delete newList[keyWord];
@@ -156,46 +176,47 @@ function Vocab({keyWord, vocabList, setVocab, textContent, setTextContent, setSh
         setVocab(newList);
     }
 
+    /*-------------------------------
+        editVocab function
+    -------------------------------*/
     function editVocab(){
         setTextContent(keyWord + ': ' + vocabList[keyWord]) 
         setShowTextInputBox(true);
     }
-    const [showMeaning, setShowMeaning] = useState(false); 
-    const [showEditDelete, setShowEditDelete] = useState(false); 
 
-    let editDeleteStyle = {
-                            margin: 10,
-                            padding: 10,
-                            borderColor:'black',
-                            borderWidth:1,
-                            borderRadius:5,
-                            flexBasis:80
-                            
-                        }
-
+      
+    /*-------------------------------
+        Render Vocab component
+    -------------------------------*/
     return(
                 <View
                     style={{
                         marginVertical: 5,
                         borderWidth: 1,
                         borderRadius: 10,
+                        backgroundColor:'black',
+                        
                     }}
                 >
 
-
+                    {/*-------------------------------
+                            Voacabulary word and '...'
+                    -------------------------------*/}
                     <View 
                         style={{
                             display:'flex',
                             flexDirection: 'row',
                             justifyContent: 'space-between',
-                            backgroundColor: 'lightgray',
                             borderTopLeftRadius: 10,
                             borderTopRightRadius: 10,
                         }}>
 
+                        {/*-------------------------------
+                            Vocab word
+                        -------------------------------*/}
                         <TouchableOpacity 
                             style={{
-                               
+                               flexGrow: 1,
                             }}
                             onPress={() => {
                                 setShowMeaning(!showMeaning)
@@ -203,31 +224,51 @@ function Vocab({keyWord, vocabList, setVocab, textContent, setTextContent, setSh
                             }}
                             >
 
-                                <Text style={{margin: 10}}>{keyWord}</Text>
+                                <Text style={{
+                                    margin: 10,
+                                    color: 'white',
+                                    }}>{keyWord}</Text>
                         </TouchableOpacity>
+                        {/*-------------------------------
+                                    '...'
+                        -------------------------------*/}
                         <TouchableOpacity
                             onPress={() => {
                                 setShowEditDelete(!showEditDelete)
                                 setShowMeaning(false);
                                 }}>
-                            <Text style={{margin:10, marginRight: 20}}>...</Text>
+                            <Text style={{
+                                margin:10,
+                                marginRight: 20,
+                                color: 'white',
+                                }}>...</Text>
                         </TouchableOpacity>
                     </View>
+                    
 
-                    {showMeaning &&
-                    <Text                 
-                        style={{
-                            padding: 30, 
-                            fontStyle:'italic',
-                            borderWidth: 1,
-                        }}>
+                    {/*-------------------------------
+                            Show Meaning
+                    -------------------------------*/}
+                    {
+                        showMeaning &&
+                        <Text                 
+                            style={{
+                                margin: 10,
+                                fontStyle:'italic',
+                                borderWidth: 1,
+                                color: 'white',
+                            }}>
 
 
-                            {vocabList[keyWord]}
+                                {vocabList[keyWord]}
 
 
-                    </Text>
+                        </Text>
                     }
+
+                    {/*-------------------------------
+                        Show Edit and Delete buttons
+                    -------------------------------*/}
                     {
                         showEditDelete &&
                         <View style={{
@@ -235,20 +276,32 @@ function Vocab({keyWord, vocabList, setVocab, textContent, setTextContent, setSh
                             flexDirection: 'row',
                             justifyContent:'space-evenly',
                             alignItems:'center',
+                             margin: 10,
                             }}>
+                            {/*-------------------------------
+                                Edit button
+                            -------------------------------*/}
                             <TouchableOpacity 
                             style={editDeleteStyle}
                             onPress={editVocab}
                             >
-                                <Text style={{textAlign:'center'}}>Edit</Text>
+                                <Text style={{
+                                    textAlign:'center',
+                                    color:'black'
+                                    }}>Edit</Text>
                             </TouchableOpacity>
-
+                            {/*-------------------------------
+                                Delete button
+                            -------------------------------*/}
                             <TouchableOpacity 
                             style={editDeleteStyle}
                             onPress={deleteVocab}
                             
                             >
-                                <Text style={{textAlign:'center'}}>Delete</Text>
+                                <Text style={{
+                                    textAlign:'center',
+                                    color:'black',
+                                    }}>Delete</Text>
                             </TouchableOpacity>
                         </View>
                     }
