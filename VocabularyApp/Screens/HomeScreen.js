@@ -1,10 +1,5 @@
-import { View, Text, TextInput, Touchable, TouchableOpacity, FlatList } from 'react-native';
-import React, { useRef } from 'react';
+import { View, Text, TextInput, TouchableOpacity, FlatList } from 'react-native';
 import { useState } from 'react';
-import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
-import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring, runOnJS} from 'react-native-reanimated';
-
 
 
 export default function HomeScreen(){
