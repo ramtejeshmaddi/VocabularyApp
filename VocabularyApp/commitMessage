@@ -2,6 +2,8 @@ Tasks Finished:
     1.  Merged new UI with main branch
 
 Todo:
+    1. Integrate contacting the DB directly through the app
+    ---------------------------------------
     1. Ping database every 5 seconds
     2. Style the App - Pojamma
     

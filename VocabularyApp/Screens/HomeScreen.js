@@ -1,5 +1,8 @@
 import { View, Text, TextInput, TouchableOpacity, FlatList } from 'react-native';
-import { useState } from 'react';
+import { use, useEffect, useState } from 'react';
+import { useFetch} from '../Logic/Hooks';
+import { editVocab, deleteVocab } from '../Logic/Local CRUD Operations';
+import { addToSupabase, updateSupabase } from '../backend/db';
 
 
 export default function HomeScreen(){
@@ -8,26 +11,10 @@ export default function HomeScreen(){
     const [showTextInputBox, setShowTextInputBox] = useState(false);
 
     const [vocabList, setVocabList] = useState({loading: 'loading'}); 
+    
     const [textContent, setTextContent] = useState(null)
 
-    useState(() => {
-                
-                fetch(URL).then(
-                    (response) => {
-                        response.json().then((data) => {
-                                setVocabList(data);
-                                return data;
-                            }
-                        )
-                    }        
-                )
-            
-
-
-    },[]);
-
-    
-
+    useFetch(setVocabList);
 
     return (
         <View>
@@ -37,52 +24,89 @@ export default function HomeScreen(){
                 --------------------------------
                 */}
                 <View 
-                    style={{
-                        flexDirection: 'row',
-                        padding: 10, 
-                        marginBottom: 10,
-                        position:'absolute', 
-                        width:'100%',
-                     }   
-                    }>
-                        {/* 
-                        -----------------------
-                        Textbox
-                        -----------------------
-                        */}
-                        {showTextInputBox &&
-                        <TextInput 
-                            placeholder='word : meaning' 
-                            placeholderTextColor={'gray'}
-                            value={textContent}
-                            onChangeText={(inputText) => {
-                                setTextContent(inputText)
-                            }}
-                            style={{
-                                flex: 1,
-                                marginRight:10,
-                                textAlign:'center',
-                                borderWidth:1,
-                                borderRadius:10
-                            }}/>
+                    style={{ flexDirection: 'row', padding: 10, marginBottom: 10,position:'absolute', 
+                             width:'100%',}}
+                >
+                        {showTextInputBox && 
+                            <TextInputBox setTextContent={setTextContent} textContent={textContent}/>
                         }
 
-                        {/*
-                        -----------------------
-                            '+'  button
-                        -----------------------
-                        */}
-                        <TouchableOpacity 
+                        <AddButton 
+                            setShowTextInputBox={setShowTextInputBox} 
+                            showTextInputBox={showTextInputBox} textContent={textContent} 
+                            setTextContent={setTextContent} vocabList={vocabList} 
+                            setVocabList={setVocabList}
+                        />
+                </View>
+                {/*
+                --------------------------------
+                List of Vocab
+                --------------------------------
+                */}
+                <FlatList
+                    style={{
+                        marginTop: 60,
+                        marginHorizontal: 10,
+                    }} 
+                    data={Object.keys(vocabList)}
+                    renderItem = {(key) => {
+                            return(
+                               <Vocab keyWord={key.item} vocabList={vocabList} setVocab={setVocabList} 
+                                    textContent={textContent} setTextContent={setTextContent} 
+                                    setShowTextInputBox={setShowTextInputBox}
+                                />
+                            );          
+                    }}
+                />
+        </View>
+    );
+}
+
+function TextInputBox({setTextContent, textContent=" "}){
+    return(
+        <TextInput 
+            placeholder='word : meaning' 
+            placeholderTextColor={'gray'}
+            value={textContent}
+            onChangeText={(inputText) => {
+                setTextContent(inputText)
+            }}
+            style={{
+                flex: 1,
+                marginRight:10,
+                textAlign:'center',
+                borderWidth:1,
+                borderRadius:10
+            }}
+        />
+    )
+}
+
+function AddButton({setShowTextInputBox, showTextInputBox, textContent, setTextContent, vocabList,
+     setVocabList}){
+    return(
+        <TouchableOpacity 
                             onPress={() => {
                                 setShowTextInputBox(!showTextInputBox)
-                                if(textContent !== null && textContent !== undefined && textContent !== ''){
+                                if(textContent != null && textContent != ""){
                                     let [vocab, meaning] = (textContent).split(':');
                                     let newVocab = {[vocab]: meaning};
-                                    if(vocab !== undefined && meaning !== undefined){
+                                    if(vocab != undefined && meaning != undefined){
                                         
+                                        //update Supabase if a word already exists
+                                        if(Object.keys(vocabList).find((word) => word === vocab)){
+                                            console.log(`Updating an existing word: ${vocab}`)
+                                            updateSupabase(vocab, meaning)
+                                        }
+                                        else{
+                                            addToSupabase(vocab.trim(), meaning.trim());
+                                        }
+
                                         setVocabList({...vocabList, [vocab]: meaning});
-                                        UpdateVocabInDatabase(newVocab);
-                                        setTextContent(null)
+                                        //Update MongoDB
+                                        //UpdateVocabInDatabase(newVocab);
+
+                                        setTextContent(" ")
                                     }
                                     else{
                                         alert('Please enter a valid \"vocab : meaning\"');
@@ -105,47 +129,7 @@ export default function HomeScreen(){
                                     }}>+</Text>
                         
                         </TouchableOpacity>
-                </View>
-                {/*
-                --------------------------------
-                List of Vocab
-                --------------------------------
-                */}
-                <FlatList
-                    style={{
-                        marginTop: 60,
-                        marginHorizontal: 10,
-                    }} 
-                    data={Object.keys(vocabList)}
-                    renderItem = {(key) => {
-                            return(
-                               <Vocab 
-                                keyWord={key.item} 
-                                vocabList={vocabList} 
-                                setVocab={setVocabList} 
-                                textContent={textContent}
-                                setTextContent={setTextContent} 
-                                setShowTextInputBox={setShowTextInputBox}
-                                />
-                            );          
-                    }}
-                />
-        </View>
-    );
-}
-
-function UpdateVocabInDatabase(newVocab){
-    const URL = process.env.EXPO_PUBLIC_URL
-
-    fetch(URL, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(newVocab)})
-
-}
-
-function DeleteVocabFromDatabase(vocab){
-    const URL = process.env.EXPO_PUBLIC_URL
-
-    fetch(URL, {method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({word:vocab})})
-
+    )
 }
 function Vocab({keyWord, vocabList, setVocab, textContent, setTextContent, setShowTextInputBox}){
     const [showMeaning, setShowMeaning] = useState(false); 
@@ -160,36 +144,17 @@ function Vocab({keyWord, vocabList, setVocab, textContent, setTextContent, setSh
                             
                         }
 
-    /*-------------------------------
-        deleteVocab function
-    -------------------------------*/
-    function deleteVocab(){
-        let newList = {...vocabList};
-        delete newList[keyWord];
-        console.log(keyWord);
-        DeleteVocabFromDatabase(keyWord);
-        setVocab(newList);
-    }
-
-    /*-------------------------------
-        editVocab function
-    -------------------------------*/
-    function editVocab(){
-        setTextContent(keyWord + ': ' + vocabList[keyWord]) 
-        setShowTextInputBox(true);
-    }
-
       
     /*-------------------------------
         Render Vocab component
     -------------------------------*/
     return(
                 <View
-                    style={{
-                        marginVertical: 5,
-                        borderWidth: 1,
-                        borderRadius: 10,
-                        backgroundColor:'black',
+                style={{
+                    marginVertical: 5,
+                    borderWidth: 1,
+                    borderRadius: 10,
+                    backgroundColor:'black',
                         
                     }}
                 >
@@ -198,25 +163,25 @@ function Vocab({keyWord, vocabList, setVocab, textContent, setTextContent, setSh
                             Voacabulary word and '...'
                     -------------------------------*/}
                     <View 
-                        style={{
-                            display:'flex',
-                            flexDirection: 'row',
-                            justifyContent: 'space-between',
-                            borderTopLeftRadius: 10,
-                            borderTopRightRadius: 10,
-                        }}>
+                    style={{
+                        display:'flex',
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        borderTopLeftRadius: 10,
+                        borderTopRightRadius: 10,
+                    }}>
 
                         {/*-------------------------------
                             Vocab word
                         -------------------------------*/}
                         <TouchableOpacity 
-                            style={{
-                               flexGrow: 1,
-                            }}
-                            onPress={() => {
-                                setShowMeaning(!showMeaning)
-                                setShowEditDelete(false);
-                            }}
+                        style={{
+                            flexGrow: 1,
+                        }}
+                        onPress={() => {
+                            setShowMeaning(!showMeaning)
+                            setShowEditDelete(false);
+                        }}
                             >
 
                                 <Text style={{
@@ -278,7 +243,7 @@ function Vocab({keyWord, vocabList, setVocab, textContent, setTextContent, setSh
                             -------------------------------*/}
                             <TouchableOpacity 
                             style={editDeleteStyle}
-                            onPress={editVocab}
+                            onPress={() => editVocab(vocabList, keyWord, setTextContent, setShowTextInputBox)}
                             >
                                 <Text style={{
                                     textAlign:'center',
@@ -290,8 +255,9 @@ function Vocab({keyWord, vocabList, setVocab, textContent, setTextContent, setSh
                             -------------------------------*/}
                             <TouchableOpacity 
                             style={editDeleteStyle}
-                            onPress={deleteVocab}
-                            
+                            onPress={() => {
+                                deleteVocab(vocabList, setVocab, keyWord)
+                            }}                            
                             >
                                 <Text style={{
                                     textAlign:'center',
