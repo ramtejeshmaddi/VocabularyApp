@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "VocabularyApp",
+    "name": "Vocabulo",
     "slug": "VocabularyApp",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -32,7 +32,13 @@
       }
     },
     "plugins": [
-      "expo-sqlite"
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow Vocabulo to access your microphone."
+        }
+      ],
+      "expo-asset"
     ]
   }
 }

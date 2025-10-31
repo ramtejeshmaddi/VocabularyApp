@@ -1,4 +1,4 @@
-import 'expo-sqlite';
+
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_PROJECT_URL;

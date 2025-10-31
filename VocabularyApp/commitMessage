@@ -1,9 +1,11 @@
 Tasks Finished:
-    1.  Merged new UI with main branch
+    1.  Changed the backend to supabase
+    2. Refactor the code
 
 Todo:
-    1. Integrate contacting the DB directly through the app
-    ---------------------------------------
-    1. Ping database every 5 seconds
-    2. Style the App - Pojamma
+    
+    
+Bugs:
+    1. Audio not playing on the first round in Android.
+    
     
