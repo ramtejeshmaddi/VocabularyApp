@@ -1,11 +1,15 @@
 Tasks Finished:
-    1.  Changed the backend to supabase
-    2. Refactor the code
+    1. Fixed the bug Audio not playing on the first round in Android.
+        Reason: 
+            Rerendering is stopping the sound from playing. So made it play after rendering.
 
 Todo:
-    
-    
+    1. Implement Dark mode feature
+
 Bugs:
-    1. Audio not playing on the first round in Android.
+    
+
+
+
     
     

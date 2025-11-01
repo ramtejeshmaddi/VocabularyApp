@@ -1,13 +1,18 @@
 import { TouchableOpacity, View, Text } from "react-native";
 import { editVocab, deleteVocab } from '../Intermediary Functions/ComponentFunctions';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAudioPlayer } from "expo-audio";
 
 
 export function Vocab({keyWord, vocabList, setVocab, textContent, setTextContent, setShowTextInputBox}){
     const [showMeaning, setShowMeaning] = useState(false); 
     const [showEditDelete, setShowEditDelete] = useState(false); 
-    const player = useAudioPlayer(require("../assets/audio/adriantnt_bubble_clap.mp3"))
+    const SoundSource = require("../assets/audio/adriantnt_bubble_clap.mp3")
+    const player = useAudioPlayer(SoundSource, {downloadFirst: true})
+    useEffect(() => {
+        player.seekTo(0)
+        player.play()
+    },[showMeaning, showEditDelete])
     let editDeleteStyle = {
                             
                             borderColor:'black',
@@ -17,7 +22,6 @@ export function Vocab({keyWord, vocabList, setVocab, textContent, setTextContent
                             backgroundColor:'white',
                             
                         }
-
     return(
                 <View
                 style={{
@@ -49,8 +53,6 @@ export function Vocab({keyWord, vocabList, setVocab, textContent, setTextContent
                             flexGrow: 1,
                         }}
                         onPress={() => {
-                            player.seekTo(0)
-                            player.play()
                             setShowMeaning(!showMeaning)
                             setShowEditDelete(false);
                         }}
@@ -66,8 +68,6 @@ export function Vocab({keyWord, vocabList, setVocab, textContent, setTextContent
                         -------------------------------*/}
                         <TouchableOpacity
                             onPress={() => {
-                                player.seekTo(0)
-                                player.play()
                                 setShowEditDelete(!showEditDelete)
                                 setShowMeaning(false);
                                 }}>
@@ -135,9 +135,8 @@ export function Vocab({keyWord, vocabList, setVocab, textContent, setTextContent
                             <TouchableOpacity 
                             style={editDeleteStyle}
                             onPress={() => {
-                                player.seekTo(0)
-                                player.play()
                                 deleteVocab(vocabList, setVocab, keyWord)
+                                //setDeletedVocabCount(true)
                             }}                            
                             >
                                 <Text style={{

@@ -1,18 +1,14 @@
 import { useAudioPlayer } from "expo-audio"
 import { TouchableOpacity, Text } from "react-native"
+import { useEffect, useState } from "react"
 import { addToSupabase, updateSupabase } from "../backend/db"
 import { onAddButtonPress } from "../Intermediary Functions/ComponentFunctions"
 
 export function AddButton({setShowTextInputBox, showTextInputBox, textContent, setTextContent, vocabList,
-     setVocabList}){
-
-    const player = useAudioPlayer(require("../assets/audio/adriantnt_bubble_clap.mp3"))
-    
+     setVocabList}){    
     return(
         <TouchableOpacity 
                             onPress={() => {
-                                player.seekTo(0)
-                                player.play()
                                 onAddButtonPress(setShowTextInputBox, showTextInputBox, textContent,
                                     setTextContent, vocabList, setVocabList)
                             }}

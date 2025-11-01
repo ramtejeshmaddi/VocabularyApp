@@ -1,9 +1,10 @@
 import { View, Text, TextInput, TouchableOpacity, FlatList } from 'react-native';
-import {useState } from 'react';
+import {useEffect, useState } from 'react';
 import { useFetch} from '../Intermediary Functions/Hooks';
 import { TextInputBox } from '../Components/TextInputBox';
 import { AddButton } from '../Components/AddButton';
 import { Vocab } from '../Components/Vocab';
+import { useAudioPlayer } from 'expo-audio';
 
 
 export default function HomeScreen(){
@@ -14,6 +15,14 @@ export default function HomeScreen(){
     const [vocabList, setVocabList] = useState({loading: 'loading'}); 
     
     const [textContent, setTextContent] = useState(" ")
+
+
+    const SoundSource = require('../assets/audio/adriantnt_bubble_clap.mp3')
+    const player = useAudioPlayer(SoundSource, {downloadFirst: true})
+    useEffect(() =>{
+        player.seekTo(0)
+        player.play()
+    })
 
 
     useFetch(setVocabList);
@@ -55,7 +64,7 @@ export default function HomeScreen(){
                             return(
                                <Vocab keyWord={key.item} vocabList={vocabList} setVocab={setVocabList} 
                                     textContent={textContent} setTextContent={setTextContent} 
-                                    setShowTextInputBox={setShowTextInputBox}
+                                    setShowTextInputBox={setShowTextInputBox} 
                                 />
                             );          
                     }}
